@@ -1,0 +1,166 @@
+version: "3.9"
+services:
+    
+    odyssey_rabbitmq:
+        container_name: "odyssey_rabbitmq"
+        image: rabbitmq:3-management-alpine  # Specific version for stability
+        environment:
+            - RABBITMQ_DEFAULT_USER=odyssey
+            - RABBITMQ_DEFAULT_PASS=odyssey
+        ports:
+            - '15672:15672'  # Port 5672 is not exposed for security reasons
+        restart: always
+        networks:
+            - odyssey-network
+        # Resource limits for RabbitMQ
+        deploy:
+          resources:
+            limits:
+              cpus: '0.50'
+              memory: 256M
+
+    odyssey_web:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                SETTINGS: settings
+                options: --reload
+        environment:
+            - SETTINGS=settings
+            - DB_HOST=db
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
+        command: /start.sh  # Use a script to start the server
+        volumes:
+            - web-data:/microservice:rw
+            - static-files:/static
+        ports:
+            - "8002:8002"
+        restart: always
+        networks:
+            - odyssey-network
+        # Resource limits for Web service
+        deploy:
+          resources:
+            limits:
+              cpus: '1.0'
+              memory: 500M
+        # Health check for Web service
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+          interval: 1m30s
+          timeout: 10s
+          retries: 3
+          start_period: 40s
+
+    odyssey_celeryworker:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                SETTINGS: settings
+        command: celery -A odyssey worker --pool=gevent --concurrency=10 -l info
+        environment:
+            - SETTINGS=settings
+            - DB_HOST=db
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
+        container_name: odyssey_celeryworker
+        depends_on:
+            - odyssey_web
+            - odyssey_rabbitmq
+            - odyssey_redis
+        hostname: celeryworker
+        restart: on-failure
+        networks:
+            - odyssey-network
+        # Resource limits for Celery Worker
+        deploy:
+          resources:
+            limits:
+              cpus: '0.75'
+              memory: 400M
+
+    odyssey_celerybeat:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                SETTINGS: settings
+        command: celery -A odyssey beat --loglevel=debug --scheduler django_celery_beat.schedulers:DatabaseScheduler
+        environment:
+            - SETTINGS=settings
+            - DB_HOST=awseb-e-fnh5ywsmdc-stack-awsebrdsdatabase-aeuzoppbfztn.cym3x5qcvxzu.ap-south-1.rds.amazonaws.com
+            - DB_NAME=ebdb
+            - DB_USER=odyssey007
+            - DB_PASS=36bW6x8e6wV3
+        container_name: odyssey_celerybeat
+        depends_on:
+            - odyssey_web
+            - odyssey_rabbitmq
+            - odyssey_redis
+        hostname: celerybeat
+        restart: on-failure
+        networks:
+            - odyssey-network
+        # Resource limits for Celery Beat
+        deploy:
+          resources:
+            limits:
+              cpus: '0.25'
+              memory: 128M
+
+    odyssey_nginx:
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+            args:
+                FILE: production
+        command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - static-files:/home/app/microservice/static
+        depends_on:
+            - odyssey_web
+        restart: always
+        networks:
+            - odyssey-network
+        # Resource limits for Nginx
+        deploy:
+          resources:
+            limits:
+              cpus: '0.25'
+              memory: 128M
+
+    odyssey_redis:
+        container_name: "odyssey_redis"
+        image: redis:6.0-alpine  # Specific version for stability
+        networks:
+            - odyssey-network
+        # Resource limits for Redis
+        deploy:
+          resources:
+            limits:
+              cpus: '0.25'
+              memory: 128M
+
+networks:
+  odyssey-network:
+    driver: bridge
+
+volumes:
+    database-data:
+    static-files:
+    web-data:
+
+# Comments:
+# - Resource limits are set for major services to ensure efficient resource allocation.
+# - Specific versions are used for Redis and RabbitMQ for stability and consistency.
+# - Ports are exposed selectively for security.
+# - Health checks are included for the web service for better fault tolerance.
+# - Deployment strategies and resource limits can be adjusted based on actual load and performance metrics.
