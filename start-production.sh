@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set your desired directory, Git repository URL, username, and password
-DIRECTORY="/var/www/staging-apis/"
-GIT_REPO_URL="github.com/odysseys/api.git"
-GIT_USERNAME="hustlefueled"
-GIT_PASSWORD="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"
+DIRECTORY=""
+GIT_REPO_URL=""
+GIT_USERNAME=""
+GIT_PASSWORD=""
 
 # Check current directory and change if necessary
 if [ "$(pwd)" != "$DIRECTORY" ]; then
@@ -41,11 +41,6 @@ sudo git pull "$GIT_URL_WITH_CREDENTIALS"
 
 # Build and run the Docker containers
 echo "Building and running Docker containers..."
-docker compose -f staging.yml up --build -d
+docker compose up --build -d
 
 echo "Done."
-
-
-#docker compose -f staging.yml up --build -d
-#docker compose -f staging.yml restart nginx
-
