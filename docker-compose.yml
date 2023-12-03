@@ -29,9 +29,9 @@ services:
         environment:
             - SETTINGS=settings
             - DB_HOST=db
-            - DB_NAME=odyssey
-            - DB_USER=odyssey
-            - DB_PASS=odyssey@2023
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
         command: /start.sh  # Use a script to start the server
         volumes:
             - web-data:/microservice:rw
@@ -65,9 +65,9 @@ services:
         environment:
             - SETTINGS=settings
             - DB_HOST=db
-            - DB_NAME=odyssey
-            - DB_USER=odyssey
-            - DB_PASS=odyssey@2023
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
         container_name: odyssey_celeryworker
         depends_on:
             - odyssey_web
@@ -94,9 +94,9 @@ services:
         environment:
             - SETTINGS=settings
             - DB_HOST=db
-            - DB_NAME=odyssey
-            - DB_USER=odyssey
-            - DB_PASS=odyssey@2023
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
         container_name: odyssey_celerybeat
         depends_on:
             - odyssey_web
@@ -155,9 +155,9 @@ services:
         image: postgres:latest
         environment:
             DOCKER_DEFAULT_PLATFORM: linux/amd64
-            POSTGRES_USER: "odyssey"
-            POSTGRES_PASSWORD: "odyssey@2023"
-            POSTGRES_DB: "odyssey"
+            POSTGRES_USER: "tinyapi"
+            POSTGRES_PASSWORD: "tinyapi@2023"
+            POSTGRES_DB: "tinyapi"
         ports:
             - "5432:5432"
         networks:
