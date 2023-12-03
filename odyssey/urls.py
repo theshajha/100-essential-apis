@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-# from .views import *
+from .views import *
 from django.contrib.staticfiles.views import serve as serve_static
 admin.site.site_header = 'Tiny API Admin'
 
@@ -43,6 +43,7 @@ router = DefaultRouter()
 
 urlpatterns = [
                   path('v1/', include('apis.urls', '100_essential_apis'), name='100_essential_apis'),
+                  path('health/', HealthCheck.as_view(), name='health_check_api'),
               ] + router.urls
 
 urlpatterns += static(settings.STATIC_URL,
