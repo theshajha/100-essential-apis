@@ -18,6 +18,7 @@ gevent
 djangorestframework-camel-case
 beautifulsoup4
 python-dotenv
+psycopg2-binary
 
 # API Key
 djangorestframework-api-key
