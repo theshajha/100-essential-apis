@@ -124,7 +124,9 @@ services:
             - 80:80
             - 443:443
         volumes:
-            - static-files:/home/app/microservice/static
+          - static-files:/home/app/microservice/static
+          - ./data/certbot/conf:/etc/letsencrypt
+          - ./data/certbot/www:/var/www/certbot
         depends_on:
             - odyssey_web
         restart: always
