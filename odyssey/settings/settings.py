@@ -28,10 +28,8 @@ sentry_sdk.init(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'odyssey_web', 'daphne', '52.66.74.156', '172.31.8.243', '172.31.38.25',
-                 'api.odyssey.co',
-                 'odyssey.co', 'https://odyssey.co', 'app.odyssey.co', 'https://app.odyssey.co',
-                 'https://api.odyssey.co', 'odyssey.ap-south-1.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'odyssey_web', '52.21.42.218', 'http://odyssey.tinyapi.co', 'https://odyssey.tinyapi.co',
+                 'odyssey.tinyapi.co']
 
 # ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
