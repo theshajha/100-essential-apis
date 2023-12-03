@@ -28,7 +28,7 @@ sentry_sdk.init(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'odyssey_web', '52.21.42.218', 'http://odyssey.tinyapi.co', 'https://odyssey.tinyapi.co',
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'odyssey_web', 'odyssey_web:8002', '52.21.42.218', 'http://odyssey.tinyapi.co', 'https://odyssey.tinyapi.co',
                  'odyssey.tinyapi.co']
 
 # ALLOWED_HOSTS = ['*']
