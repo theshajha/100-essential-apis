@@ -149,7 +149,7 @@ services:
               cpus: '0.25'
               memory: 128M
 
-    
+
     certbot:
         image: certbot/certbot
         volumes:
