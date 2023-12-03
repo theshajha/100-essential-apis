@@ -114,6 +114,7 @@ services:
               memory: 128M
 
     odyssey_nginx:
+        image: nginx:latest
         build:
             context: ./nginx
             dockerfile: Dockerfile
