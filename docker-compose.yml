@@ -93,10 +93,10 @@ services:
         command: celery -A odyssey beat --loglevel=debug --scheduler django_celery_beat.schedulers:DatabaseScheduler
         environment:
             - SETTINGS=settings
-            - DB_HOST=awseb-e-fnh5ywsmdc-stack-awsebrdsdatabase-aeuzoppbfztn.cym3x5qcvxzu.ap-south-1.rds.amazonaws.com
-            - DB_NAME=ebdb
-            - DB_USER=odyssey007
-            - DB_PASS=36bW6x8e6wV3
+            - DB_HOST=db
+            - DB_NAME=tinyapi
+            - DB_USER=tinyapi
+            - DB_PASS=tinyapi@2023
         container_name: odyssey_celerybeat
         depends_on:
             - odyssey_web
@@ -148,6 +148,21 @@ services:
             limits:
               cpus: '0.25'
               memory: 128M
+
+
+    db:
+        restart: always
+        image: postgres:latest
+        environment:
+            DOCKER_DEFAULT_PLATFORM: linux/amd64
+            POSTGRES_USER: "tinyapi"
+            POSTGRES_PASSWORD: "tinyapi@2023"
+            POSTGRES_DB: "tinyapi"
+        ports:
+            - "5432:5432"
+        volumes:
+            - database-data:/var/lib/postgresql/sadata/
+
 
 
     certbot:
