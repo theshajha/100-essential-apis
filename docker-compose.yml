@@ -37,7 +37,7 @@ services:
             - web-data:/microservice:rw
             - static-files:/static
         ports:
-            - "8002:8002"
+            - "8000:8000"
         restart: always
         networks:
             - odyssey-network
@@ -49,7 +49,7 @@ services:
               memory: 500M
         # Health check for Web service
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+          test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
           interval: 1m30s
           timeout: 10s
           retries: 3

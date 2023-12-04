@@ -60,4 +60,4 @@ SIMPLE_JWT = {
 }
 
 BASE_APP_URL = 'https://staging.odyssey.co'
-BASE_API_URL = 'http://localhost:8002'
+BASE_API_URL = 'http://localhost:8000'

@@ -18,7 +18,7 @@ COPY ./requirements.txt .
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-EXPOSE 8002
+EXPOSE 8000
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
