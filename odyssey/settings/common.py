@@ -33,6 +33,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", 'https://*.tinyapi.co']
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000", 'https://*.tinyapi.co',
