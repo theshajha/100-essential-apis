@@ -54,12 +54,11 @@ class IPGeocodeView(APIView):
         try:
             response = reader.city(ip_address)
         except AddressNotFoundError:
-            reader.close()
-            return Response({"error": "IP address not found"}, status=404)
+            return Response({"error": "IP address not found", 'ip_address': str(ip_address)}, status=404)
         except Exception as e:
-            reader.close()
-            capture_exception(e)
-            return Response({"error": "An error occurred while processing the IP address."}, status=500)
+            return Response(
+                {"error": "An error occurred while processing the IP address.", 'ip_address': str(ip_address)},
+                status=500)
 
         data = build_geoip_data(response, ip_address)
 
@@ -74,7 +73,7 @@ class IPGeocodeView(APIView):
 
 def build_geoip_data(geoip_response, ip_address):
     data = {
-        "ip": ip_address,
+        "ip": str(ip_address),
         "country_code": geoip_response.country.iso_code,
         "country_name": geoip_response.country.name,
         "region_code": geoip_response.subdivisions.most_specific.iso_code,
