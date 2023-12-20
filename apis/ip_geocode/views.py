@@ -34,7 +34,7 @@ class IPGeocodeView(APIView):
 
     def get(self, request, ip_address=None, format=None):
         # Use a settings variable for the path to the GeoLite2-City database
-        geo_db_path = getattr(settings, 'GEOLITE2_CITY_DB_PATH', 'path/to/GeoLite2-City.mmdb')
+        geo_db_path = getattr(settings, 'GEOLITE2_CITY_DB_PATH', 'apis/ip_geocode/GeoLite2-City.mmdb')
         reader = Reader(geo_db_path)
 
         # If no IP address is provided, use the utility function to get the client's IP
