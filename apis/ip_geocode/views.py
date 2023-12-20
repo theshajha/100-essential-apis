@@ -97,13 +97,18 @@ def build_geoip_data(geoip_response, ip_address):
             'is_public_proxy': getattr(geoip_response.traits, 'is_public_proxy', False),
             'is_tor_exit_node': getattr(geoip_response.traits, 'is_tor_exit_node', False),
             'user_type': getattr(geoip_response.traits, 'user_type', "Unknown"),
-        },
-        "network": {
+        }
+    }
+
+    data.update(optional_fields)
+
+    # For the 'network' field, ensure the IP is converted to a string
+    network_data = getattr(geoip_response.traits, 'network', None)
+    if network_data:
+        data["network"] = {
             'ip': getattr(geoip_response.traits, 'ip_address', str(ip_address)),
             'network': getattr(geoip_response.traits, 'network', None),
         }
-    }
-    data.update(optional_fields)
 
     # Pycountry and phonenumbers lookups with fallbacks
     country = pycountry.countries.get(alpha_2=geoip_response.country.iso_code) if geoip_response.country else None
@@ -115,4 +120,3 @@ def build_geoip_data(geoip_response, ip_address):
         })
 
     return data
-
