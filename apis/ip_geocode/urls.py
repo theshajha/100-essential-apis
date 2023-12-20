@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import *
+from .temp import *
 
 app_name = 'ip_geocode'
 
