@@ -7,12 +7,12 @@ Get accurate weather forecasts for any location with our Weather Forecast API. R
 import requests
 
 headers = {
-    'Authorization': 'Bearer YOUR_API_KEY'
+    'Authorization': 'Api-Key YOUR_API_KEY'
 }
 
 params = {
-    'location': 'New York, NY',
-    'units': 'metric'
+    'lat': '32.0411366',
+    'lon': '76.710075'
 }
 
 response = requests.get('https://api.tinyapi.co/v1/weather/today/?lat=33.44&lon=-94.04', headers=headers, params=params)

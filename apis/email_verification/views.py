@@ -6,12 +6,20 @@ import re
 import dns.resolver
 import smtplib
 
-from odyssey.utils.base_functions import CookieJWTAuthentication
+from .throttles import CustomScopedRateThrottle
+
+from rest_framework.permissions import BasePermission
+
+
+class CustomPermission(BasePermission):
+    def has_permission(self, request, view):
+        # Implement custom permission logic
+        return True
 
 
 class VerifyEmailView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    throttle_classes = [CustomScopedRateThrottle]
+    permission_classes = [CustomPermission]
 
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')

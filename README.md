@@ -29,9 +29,9 @@ Below is a list of currently live APIs. Click on each to access their specific `
   - Incorporate AI and ML-based APIs.
 
 - **Roadmap**:
-  - [ ] API 3 - Scheduled for release in Jan 2024.
-  - [ ] Enhance API 2 with additional features by Mar 2024.
-  - ... (additional roadmap items)
+  - [ ] URL Shortner API - Scheduled for release in Jan 2024.
+  - [ ] SEO Sitemap API - Scheduled for release in Feb 2024.
+  - [ ] Keyword Search API - Scheduled for release in March 2024.
 
 ## Raising Issues
 
@@ -49,7 +49,7 @@ Your feedback is invaluable in improving API Odyssey!
 Interested in adding an API to the Odyssey? Here's how you can contribute:
 
 1. **Fork the Repository**:
-   - Click on the `Fork` button at the top right corner of this repository.
+   - Click on the `Fork` button in the top right corner of this repository.
 
 2. **Create Your API**:
    - Create a new Django app for your API in your forked repository.

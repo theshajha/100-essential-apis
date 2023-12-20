@@ -12,6 +12,8 @@ import pycountry
 import phonenumbers
 from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import capture_exception, capture_message
+from django.conf import settings
+from django.core.cache import cache
 
 # from ipware import get_client_ip
 
@@ -26,133 +28,94 @@ def get_client_ip(request):
     return client_ip, True
 
 
-class IPGeocodeSerializer(serializers.Serializer):
-    ip = serializers.CharField()
-    country_code = serializers.CharField()
-    country_name = serializers.CharField()
-    region_code = serializers.CharField()
-    region_name = serializers.CharField()
-    city = serializers.CharField()
-    postal_code = serializers.CharField()
-    latitude = serializers.FloatField()
-    longitude = serializers.FloatField()
-    currency = serializers.CharField()
-
-
 @throttle_classes([AnonRateThrottle])
 @permission_classes((permissions.AllowAny,))
 class IPGeocodeView(APIView):
-    # @log_api_request
+
     def get(self, request, ip_address=None, format=None):
-        # Replace 'path/to/GeoLite2-City.mmdb' with the actual path to the downloaded database
-        reader = Reader('apis/ip_geocode/GeoLite2-City.mmdb')
+        # Use a settings variable for the path to the GeoLite2-City database
+        geo_db_path = getattr(settings, 'GEOLITE2_CITY_DB_PATH', 'path/to/GeoLite2-City.mmdb')
+        reader = Reader(geo_db_path)
 
+        # If no IP address is provided, use the utility function to get the client's IP
         if not ip_address:
-            if request is None:
-                return Response(
-                    {'error': 'Request object is required when IP is not provided', 'ip_address': ip_address},
-                    status=400)
+            ip_address, is_routable = get_client_ip(request)
+            if not ip_address or not is_routable:
+                return Response({'error': 'Unable to determine or use the provided IP address.'}, status=400)
 
-            client_ip, is_routable = get_client_ip(request)
-            if client_ip is None:
-                return Response({'error': 'Unable to determine IP address', 'ip_address': ip_address}, status=400)
-            else:
-                # Got the client's IP address
-                if is_routable:
-                    # The client's IP address is a public IP
-                    ip_address = client_ip
-                else:
-                    # The client's IP address is a private IP
-                    return Response(
-                        {'error': 'Geolocation data not available for private IP addresses', 'ip_address': ip_address},
-                        status=400)
+        # Check if we have the data in cache first
+        cache_key = f"geoip_data_{ip_address}"
+        data = cache.get(cache_key)
+        if data:
+            reader.close()
+            return Response(data)
 
+        # If not in cache, process the request
         try:
             response = reader.city(ip_address)
         except AddressNotFoundError:
-            return Response({"error": "IP address not found", 'ip_address': ip_address}, status=404)
+            reader.close()
+            return Response({"error": "IP address not found"}, status=404)
+        except Exception as e:
+            reader.close()
+            capture_exception(e)
+            return Response({"error": "An error occurred while processing the IP address."}, status=500)
 
-        country = pycountry.countries.get(alpha_2=response.country.iso_code)
-        subdivision = response.subdivisions.most_specific
+        data = build_geoip_data(response, ip_address)
 
-        data = {
-            "ip": ip_address,
-            "country_code": response.country.iso_code,
-            "country_name": response.country.name,
-            "region_code": subdivision.iso_code,
-            "region_name": subdivision.name,
-            "city": response.city.name,
-            "postal_code": response.postal.code,
-            "latitude": response.location.latitude,
-            "longitude": response.location.longitude,
-        }
-
-        if response.location.accuracy_radius:
-            data["accuracy_radius"] = response.location.accuracy_radius
-
-        if response.location.time_zone:
-            data["time_zone"] = response.location.time_zone
-
-        if country:
-            try:
-                currency = pycountry.currencies.get(alpha_3=response.country.iso_code)
-                if currency:
-                    data["currency"] = currency.alpha_3
-
-                language = pycountry.languages.get(alpha_2=country.alpha_2)
-                if language:
-                    data["language"] = language.alpha_2
-
-            except Exception as e:
-                capture_exception(e)
-                pass
-
-            try:
-                phone_code = phonenumbers.country_code_for_region(country.alpha_2)
-                data["phone_code"] = f"+{phone_code}"
-            except Exception as e:
-                capture_exception(e)
-                pass
-
-        if response.traits:
-            traits = json.dumps(response.traits.__dict__)
-            json_traits = json.loads(traits)
-            try:
-                data["connection"] = {
-                    'asn': json_traits['autonomous_system_number'],
-                    'isp': json_traits['autonomous_system_organization'],
-                    'organization': json_traits['isp'],
-                    'domain': json_traits['domain'],
-                    'is_hosting_provider': json_traits['is_hosting_provider'],
-                    'is_public_proxy': json_traits['is_public_proxy'],
-                    'is_tor_exit_node': json_traits['is_tor_exit_node'],
-                    'user_type': json_traits['user_type'],
-                }
-            except Exception as e:
-                capture_exception(e)
-                pass
-
-            try:
-                data["security"] = {
-                    'is_proxy': json_traits['is_anonymous_proxy'],
-                    'is_crawler': json_traits['is_anonymous'],
-                    'proxy_type': None,  # Need to use a third-party API or package to determine the proxy type
-                    'crawler_name': None  # Need to use a third-party API or package to determine the crawler name
-                }
-            except Exception as e:
-                capture_exception(e)
-                pass
-
-            try:
-                data["network"] = {
-                    'ip': json_traits['ip_address'],
-                    'network': json_traits['network'],
-                    'network_type': json_traits['network_type'],
-                }
-            except Exception as e:
-                capture_exception(e)
-                pass
+        # Save the data in cache for future requests
+        timeout = getattr(settings, 'GEOIP_CACHE_TIMEOUT', 86400)  # Default to 24 hours
+        cache.set(cache_key, data, timeout=timeout)
 
         reader.close()
 
         return Response(data)
+
+
+def build_geoip_data(geoip_response, ip_address):
+    data = {
+        "ip": ip_address,
+        "country_code": geoip_response.country.iso_code,
+        "country_name": geoip_response.country.name,
+        "region_code": geoip_response.subdivisions.most_specific.iso_code,
+        "region_name": geoip_response.subdivisions.most_specific.name,
+        "city": geoip_response.city.name,
+        "postal_code": geoip_response.postal.code,
+        "latitude": geoip_response.location.latitude,
+        "longitude": geoip_response.location.longitude,
+    }
+
+    # Add optional fields
+    optional_fields = {
+        "accuracy_radius": geoip_response.location.accuracy_radius,
+        "time_zone": geoip_response.location.time_zone,
+        "connection": {
+            'asn': geoip_response.traits.autonomous_system_number,
+            'isp': geoip_response.traits.autonomous_system_organization,
+            'organization': geoip_response.traits.isp,
+            'domain': geoip_response.traits.domain,
+            'is_hosting_provider': geoip_response.traits.is_hosting_provider,
+            'is_public_proxy': geoip_response.traits.is_public_proxy,
+            'is_tor_exit_node': geoip_response.traits.is_tor_exit_node,
+            'user_type': geoip_response.traits.user_type,
+        },
+        "network": {
+            'ip': geoip_response.traits.ip_address,
+            'network': geoip_response.traits.network,
+        }
+    }
+    for key, value in optional_fields.items():
+        if value:
+            data[key] = value
+
+    # Pycountry and phonenumbers lookups
+    country = pycountry.countries.get(alpha_2=geoip_response.country.iso_code)
+    if country:
+        data.update({
+            "currency": getattr(pycountry.currencies.get(alpha_3=country.alpha_3), 'alpha_3', None),
+            "language": getattr(pycountry.languages.get(alpha_2=country.alpha_2), 'alpha_2', None),
+            "phone_code": phonenumbers.country_code_for_region(country.alpha_2)
+        })
+
+    return data
+

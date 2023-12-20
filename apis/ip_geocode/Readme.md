@@ -7,10 +7,10 @@ The IP Geolocation API provides information about the location of an IP address.
   - [Installation](#installation)
 - [Usage](#usage)
   - [IP Geolocation (via IP address)](#ip-geolocation-via-ip-address)
-    - [`GET /v1/ip-geolocation/<IP_ADDRESS>`](#get-v1ip-geolocationip_address)
+    - [`GET /v1/ip-geocode/<IP_ADDRESS>`](#get-v1ip-geolocationip_address)
       - [Parameters](#parameters)
   - [IP Geolocation (auto-detect IP address)](#ip-geolocation-auto-detect-ip-address)
-    - [`GET /v1/ip-geolocation/`](#get-v1ip-geolocation)
+    - [`GET /v1/ip-geocode/`](#get-v1ip-geolocation)
       - [Response](#response)
 - [Contributing](#contributing)
 - [License](#license)
@@ -45,8 +45,8 @@ docker-compose up
 Once the server is running, you can use the IP Geolocation API with the following endpoint:
 
 ### IP Geolocation (via IP address)
-#### `GET /v1/ip-geolocation/<IP_ADDRESS>`
-`https://api.odyssey.co/v1/ip-geolocation/<IP_ADDRESS>`
+#### `GET /v1/ip-geocode/<IP_ADDRESS>`
+`https://odyssey.tinyapi.co/v1/ip-geocode/<IP_ADDRESS>`
 
 ##### Parameters
 | Name | Type | Description |
@@ -54,8 +54,8 @@ Once the server is running, you can use the IP Geolocation API with the followin
 | `IP_ADDRESS` | `string` | The IP address to geolocate. |
 
 ### IP Geolocation (auto-detect IP address)
-#### `GET /v1/ip-geolocation/`
-`https://api.odyssey.co/v1/ip-geolocation/`
+#### `GET /v1/ip-geocode/`
+`https://odyssey.tinyapi.co/v1/ip-geocode/`
 
 ##### Response
 ```json
