@@ -12,4 +12,5 @@ router = DefaultRouter()
 urlpatterns = [
                   path('ip-geocode/', include('apis.ip_geocode.urls')),
                   path('weather/', include('apis.weather_forecast.urls')),
+                  path('domain-tracker/', include('apis.domain_tracker.urls')),
               ] + router.urls

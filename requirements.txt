@@ -31,3 +31,6 @@ geoip2
 pycountry
 phonenumbers
 django-ipware
+
+# Domain Tracker
+python-whois
