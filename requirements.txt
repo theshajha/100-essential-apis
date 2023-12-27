@@ -34,3 +34,4 @@ django-ipware
 
 # Domain Tracker
 python-whois
+tldextract

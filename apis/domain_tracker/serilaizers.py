@@ -45,3 +45,7 @@ class DomainDetailSerializer(serializers.Serializer):
 
     def validate_domain(self, domain):
         return DomainSerializer.validate_and_clean_domain(domain)
+
+
+class DomainSuggestionSerializer(serializers.Serializer):
+    domain = serializers.CharField(max_length=100)

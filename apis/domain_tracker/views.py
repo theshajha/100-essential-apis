@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import whois
+import tldextract
+import itertools
 from .serilaizers import *
 
 
@@ -64,3 +66,42 @@ class DomainDetailView(BaseDomainAPIView):
             except Exception as e:
                 return self.error_response({'error': str(e)})
         return self.error_response(serializer.errors)
+
+
+class DomainSuggestionView(BaseDomainAPIView):
+    def post(self, request, *args, **kwargs):
+        serializer = DomainSuggestionSerializer(data=request.data)
+        if serializer.is_valid():
+            domain = serializer.validated_data['domain']
+            suggestions = self.generate_domain_suggestions(domain)
+            statuses = {suggestion: self.get_domain_status(suggestion) for suggestion in suggestions}
+            return self.success_response(statuses)
+        return self.error_response(serializer.errors)
+
+    def generate_domain_suggestions(self, domain):
+        extracted = tldextract.extract(domain)
+        base_domain = extracted.domain
+
+        # List of popular TLDs and SLDs
+        popular_tlds = ["com", "net", "org", "io", "co"]
+        popular_slds = ["", "get", "my", "app", "online"]
+
+        # Generate domain variations
+        variations = set()
+        for sld, tld in itertools.product(popular_slds, popular_tlds):
+            if sld:
+                variation = f"{sld}{base_domain}.{tld}"
+            else:
+                variation = f"{base_domain}.{tld}"
+            if variation != domain:  # Exclude the original domain
+                variations.add(variation)
+
+        return list(variations)
+
+    @staticmethod
+    def get_domain_status(domain):
+        try:
+            w = whois.whois(domain)
+            return "Available" if not w.domain_name else "Unavailable"
+        except Exception as e:
+            return str(e)
